@@ -1,0 +1,19 @@
+EXPERIMENT:
+  NAME: ""
+  TAG: "dkd,res56,res20"
+  PROJECT: "cifar100_baselines"
+DISTILLER:
+  TYPE: "DKD"
+  TEACHER: "resnet56"
+  STUDENT: "resnet20"
+SOLVER:
+  BATCH_SIZE: 64
+  EPOCHS: 240
+  LR: 0.05
+  LR_DECAY_STAGES: [150, 180, 210]
+  LR_DECAY_RATE: 0.1
+  WEIGHT_DECAY: 0.0005
+  MOMENTUM: 0.9
+  TYPE: "SGD"
+DKD:
+  BETA: 2.0

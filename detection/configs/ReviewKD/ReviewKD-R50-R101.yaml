@@ -1,0 +1,32 @@
+_BASE_: "../Base-Distillation.yaml"
+OUTPUT_DIR: output/ReviewKD-R50-R101
+MODEL:
+  BACKBONE:
+    NAME: "build_resnet_fpn_backbone_kd"
+  WEIGHTS: "pretrained/r50-r101.pth"
+  RESNETS:
+    OUT_FEATURES: ["res2", "res3", "res4", "res5"]
+    DEPTH: 50
+  FPN:
+    IN_FEATURES: ["res2", "res3", "res4", "res5"]
+  PROPOSAL_GENERATOR:
+    NAME: "RPN"
+  ROI_HEADS:
+    NAME: "StandardROIHeads"
+
+TEACHER:
+  MODEL:
+    RESNETS:
+      DEPTH: 101
+KD:
+  TYPE: "ReviewKD"
+  REVIEWKD_LOSS_WEIGHT: 1.0
+
+SOLVER:
+  IMS_PER_BATCH: 8
+  BASE_LR: 0.01
+  MAX_ITER: 180000
+  STEPS:
+  - 120000
+  - 160000
+

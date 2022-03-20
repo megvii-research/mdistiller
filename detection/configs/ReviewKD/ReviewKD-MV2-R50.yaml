@@ -1,0 +1,34 @@
+_BASE_: "../Base-Distillation.yaml"
+OUTPUT_DIR: output/ReviewKD-MV2-R50
+MODEL:
+  BACKBONE:
+    NAME: "build_mobilenetv2_fpn_backbone"
+    FREEZE_AT: 0
+  WEIGHTS: "pretrained/mv2-r50.pth"
+  MOBILENETV2:
+    OUT_FEATURES: ["m2", "m3", "m4", "m5"]
+  FPN:
+    IN_FEATURES: ["m2", "m3", "m4", "m5"]
+
+  PROPOSAL_GENERATOR:
+    NAME: "RPN"
+  ROI_HEADS:
+    NAME: "StandardROIHeads"
+
+TEACHER:
+  MODEL:
+    RESNETS:
+      DEPTH: 50
+KD:
+  TYPE: "ReviewKD"
+  REVIEWKD:
+    LOSS_WEIGHT: 2.0
+
+SOLVER:
+  IMS_PER_BATCH: 8
+  BASE_LR: 0.01
+  MAX_ITER: 180000
+  STEPS:
+  - 120000
+  - 160000
+
