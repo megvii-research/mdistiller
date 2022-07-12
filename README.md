@@ -32,7 +32,7 @@ On CIFAR-100:
 
 On ImageNet:
 
-| Teacher <br> Student |ResNet34 <br> ResNet18|ResNet50 <br> MobileNet-V2|
+| Teacher <br> Student |ResNet34 <br> ResNet18|ResNet50 <br> MobileNet-V1|
 |:---------------:|:-----------------:|:-----------------:|
 | KD | 71.03 | 70.50 | 
 | **DKD** | **71.70** | **72.05** |
@@ -96,7 +96,7 @@ sudo python3 setup.py develop
   
   # evaluate students
   python3 tools/eval.p -m resnet8x4 -c download_ckpts/dkd_resnet8x4 # dkd-resnet8x4 on cifar100
-  python3 tools/eval.p -m MobileNetV2 -c download_ckpts/imgnet_dkd_mv2 -d imagenet # dkd-mv2 on imagenet
+  python3 tools/eval.p -m MobileNetV1 -c download_ckpts/imgnet_dkd_mv1 -d imagenet # dkd-mv1 on imagenet
   python3 tools/eval.p -m model_name -c output/your_exp/student_best # your checkpoints
   ```
 

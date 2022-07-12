@@ -1,6 +1,6 @@
 EXPERIMENT:
   NAME: ""
-  TAG: "kd,res50,mobilenetv2"
+  TAG: "ofd,res50,mobilenetv1"
   PROJECT: "imagenet_baselines"
 DATASET:
   TYPE: "imagenet"
@@ -8,23 +8,21 @@ DATASET:
   TEST:
     BATCH_SIZE: 128
 DISTILLER:
-  TYPE: "KD"
+  TYPE: "OFD"
   TEACHER: "ResNet50"
-  STUDENT: "MobileNetV2"
+  STUDENT: "MobileNetV1"
 SOLVER:
-  BATCH_SIZE: 512
+  BATCH_SIZE: 128
   EPOCHS: 100
-  LR: 0.2
+  LR: 0.05
   LR_DECAY_STAGES: [30, 60, 90]
   LR_DECAY_RATE: 0.1
   WEIGHT_DECAY: 0.0001
   MOMENTUM: 0.9
   TYPE: "SGD"
-KD:
-  TEMPERATURE: 1
+OFD:
   LOSS:
-    CE_WEIGHT: 0.5
-    KD_WEIGHT: 0.5
+    FEAT_WEIGHT: 0.0001
 LOG:
   TENSORBOARD_FREQ: 50
   SAVE_CHECKPOINT_FREQ: 10

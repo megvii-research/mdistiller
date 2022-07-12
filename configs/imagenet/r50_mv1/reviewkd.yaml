@@ -1,6 +1,6 @@
 EXPERIMENT:
   NAME: ""
-  TAG: "reviewkd,res50,mobilenetv2"
+  TAG: "reviewkd,res50,mobilenetv1"
   PROJECT: "imagenet_baselines"
 DATASET:
   TYPE: "imagenet"
@@ -10,7 +10,7 @@ DATASET:
 DISTILLER:
   TYPE: "REVIEWKD"
   TEACHER: "ResNet50"
-  STUDENT: "MobileNetV2"
+  STUDENT: "MobileNetV1"
 SOLVER:
   BATCH_SIZE: 256
   EPOCHS: 100

@@ -3,9 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class MobileNetV2(nn.Module):
+class MobileNetV1(nn.Module):
     def __init__(self, **kwargs):
-        super(MobileNetV2, self).__init__()
+        super(MobileNetV1, self).__init__()
 
         def conv_bn(inp, oup, stride):
             return nn.Sequential(

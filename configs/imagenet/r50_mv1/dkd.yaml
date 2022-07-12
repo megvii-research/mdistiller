@@ -1,6 +1,6 @@
 EXPERIMENT:
   NAME: ""
-  TAG: "at,res50,mobilenetv2"
+  TAG: "dkd,res50,mobilenetv1"
   PROJECT: "imagenet_baselines"
 DATASET:
   TYPE: "imagenet"
@@ -8,9 +8,9 @@ DATASET:
   TEST:
     BATCH_SIZE: 128
 DISTILLER:
-  TYPE: "AT"
+  TYPE: "DKD"
   TEACHER: "ResNet50"
-  STUDENT: "MobileNetV2"
+  STUDENT: "MobileNetV1"
 SOLVER:
   BATCH_SIZE: 512
   EPOCHS: 100
@@ -23,3 +23,8 @@ SOLVER:
 LOG:
   TENSORBOARD_FREQ: 50
   SAVE_CHECKPOINT_FREQ: 10
+DKD:
+  CE_WEIGHT: 1.0
+  BETA: 2.0
+  T: 1.0
+  WARMUP: 1
