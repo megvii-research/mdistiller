@@ -3,3 +3,5 @@ torchvision==0.10.0
 tensorboard-logger==0.1.0
 yacs
 wandb
+tqdm
+tensorboardX
