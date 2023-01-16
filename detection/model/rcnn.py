@@ -74,7 +74,7 @@ class RCNNKD(nn.Module):
         self.roi_heads = roi_heads
         self.teacher = teacher
         self.kd_args = kd_args
-        if self.kd_args.TYPE == "ReviewKD":
+        if self.kd_args.TYPE in ("ReviewKD", "ReviewDKD"):
             self.kd_trans = build_kd_trans(self.kd_args)
 
         self.input_format = input_format
@@ -210,6 +210,20 @@ class RCNNKD(nn.Module):
         elif self.kd_args.TYPE == "ReviewKD":
             teacher_images = self.teacher_preprocess_image(batched_inputs)
             t_features = self.teacher.backbone(teacher_images.tensor)
+            t_features = [t_features[f] for f in t_features]
+            s_features = [features[f] for f in features]
+            s_features = self.kd_trans(s_features)
+            losses['loss_reviewkd'] = hcl(s_features, t_features) * self.kd_args.REVIEWKD.LOSS_WEIGHT
+        elif self.kd_args.TYPE == "ReviewDKD":
+            teacher_images = self.teacher_preprocess_image(batched_inputs)
+            t_features = self.teacher.backbone(teacher_images.tensor)
+            # dkd loss
+            stu_predictions = self.forward_pure_roi_head(self.roi_heads, features, sampled_proposals)
+            tea_predictions = self.forward_pure_roi_head(self.teacher.roi_heads, t_features, sampled_proposals)
+            detector_losses.update(rcnn_dkd_loss(
+                stu_predictions, tea_predictions, [x.gt_classes for x in sampled_proposals], 
+                self.kd_args.DKD.ALPHA, self.kd_args.DKD.BETA, self.kd_args.DKD.T))
+            # reviewkd loss
             t_features = [t_features[f] for f in t_features]
             s_features = [features[f] for f in features]
             s_features = self.kd_trans(s_features)
