@@ -165,7 +165,7 @@ If this repo is helpful for your research, please consider citing the paper:
 
 ```BibTeX
 @article{zhao2022dkd,
-  title={Decoupled Knowledge Distllation},
+  title={Decoupled Knowledge Distillation},
   author={Zhao, Borui and Cui, Quan and Song, Renjie and Qiu, Yiyu and Liang, Jiajun},
   journal={arXiv preprint arXiv:2203.08679},
   year={2022}
