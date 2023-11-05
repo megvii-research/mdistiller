@@ -6,6 +6,37 @@ This repo is
 
 (2) the official implementation of the CVPR-2022 paper: [Decoupled Knowledge Distillation](https://arxiv.org/abs/2203.08679).
 
+(3) the official implementation of the ICCV-2023 paper: [DOT: A Distillation-Oriented Trainer](https://openaccess.thecvf.com/content/ICCV2023/papers/Zhao_DOT_A_Distillation-Oriented_Trainer_ICCV_2023_paper.pdf).
+
+
+# DOT: A Distillation-Oriented Trainer
+
+### Framework
+
+<div style="text-align:center"><img src=".github/dot.png" width="80%" ></div>
+
+### Main Benchmark Results
+
+On CIFAR-100:
+
+| Teacher <br> Student | ResNet32x4 <br> ResNet8x4| VGG13 <br> VGG8| ResNet32x4 <br>  ShuffleNet-V2|
+|:---------------:|:-----------------:|:-----------------:|:-----------------:|
+| KD | 73.33 | 72.98 | 74.45 |
+| **KD+DOT** | **75.12** | **73.77** | **75.55** |
+
+On Tiny-ImageNet:
+
+| Teacher <br> Student |ResNet18 <br> MobileNet-V2|ResNet18 <br> ShuffleNet-V2|
+|:---------------:|:-----------------:|:-----------------:|
+| KD | 58.35 | 62.26 | 
+| **KD+DOT** | **64.01** | **65.75** |
+
+On ImageNet:
+
+| Teacher <br> Student |ResNet34 <br> ResNet18|ResNet50 <br> MobileNet-V1|
+|:---------------:|:-----------------:|:-----------------:|
+| KD | 71.03 | 70.50 | 
+| **KD+DOT** | **71.72** | **73.09** |
 
 # Decoupled Knowledge Distillation
 
@@ -169,6 +200,12 @@ If this repo is helpful for your research, please consider citing the paper:
   author={Zhao, Borui and Cui, Quan and Song, Renjie and Qiu, Yiyu and Liang, Jiajun},
   journal={arXiv preprint arXiv:2203.08679},
   year={2022}
+}
+@article{zhao2023dot,
+  title={DOT: A Distillation-Oriented Trainer},
+  author={Zhao, Borui and Cui, Quan and Song, Renjie and Liang, Jiajun},
+  journal={arXiv preprint arXiv:2307.08436},
+  year={2023}
 }
 ```
 

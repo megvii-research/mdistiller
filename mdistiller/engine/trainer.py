@@ -16,6 +16,7 @@ from .utils import (
     load_checkpoint,
     log_msg,
 )
+from .dot import DistillationOrientedTrainer
 
 
 class BaseTrainer(object):
@@ -211,6 +212,154 @@ class CRDTrainer(BaseTrainer):
         batch_size = image.size(0)
         acc1, acc5 = accuracy(preds, target, topk=(1, 5))
         train_meters["losses"].update(loss.cpu().detach().numpy().mean(), batch_size)
+        train_meters["top1"].update(acc1[0], batch_size)
+        train_meters["top5"].update(acc5[0], batch_size)
+        # print info
+        msg = "Epoch:{}| Time(data):{:.3f}| Time(train):{:.3f}| Loss:{:.4f}| Top-1:{:.3f}| Top-5:{:.3f}".format(
+            epoch,
+            train_meters["data_time"].avg,
+            train_meters["training_time"].avg,
+            train_meters["losses"].avg,
+            train_meters["top1"].avg,
+            train_meters["top5"].avg,
+        )
+        return msg
+
+
+class DOT(BaseTrainer):
+    def init_optimizer(self, cfg):
+        if cfg.SOLVER.TYPE == "SGD":
+            m_task = cfg.SOLVER.MOMENTUM - cfg.SOLVER.DOT.DELTA
+            m_kd = cfg.SOLVER.MOMENTUM + cfg.SOLVER.DOT.DELTA
+            optimizer = DistillationOrientedTrainer(
+                self.distiller.module.get_learnable_parameters(),
+                lr=cfg.SOLVER.LR,
+                momentum=m_task,
+                momentum_kd=m_kd,
+                weight_decay=cfg.SOLVER.WEIGHT_DECAY,
+            )
+        else:
+            raise NotImplementedError(cfg.SOLVER.TYPE)
+        return optimizer
+
+    def train(self, resume=False):
+        epoch = 1
+        if resume:
+            state = load_checkpoint(os.path.join(self.log_path, "latest"))
+            epoch = state["epoch"] + 1
+            self.distiller.load_state_dict(state["model"])
+            self.optimizer.load_state_dict(state["optimizer"])
+            self.best_acc = state["best_acc"]
+        while epoch < self.cfg.SOLVER.EPOCHS + 1:
+            self.train_epoch(epoch)
+            epoch += 1
+        print(log_msg("Best accuracy:{}".format(self.best_acc), "EVAL"))
+        with open(os.path.join(self.log_path, "worklog.txt"), "a") as writer:
+            writer.write("best_acc\t" + "{:.2f}".format(float(self.best_acc)))
+
+    def train_iter(self, data, epoch, train_meters):
+        train_start_time = time.time()
+        image, target, index = data
+        train_meters["data_time"].update(time.time() - train_start_time)
+        image = image.float()
+        image = image.cuda(non_blocking=True)
+        target = target.cuda(non_blocking=True)
+        index = index.cuda(non_blocking=True)
+
+        # forward
+        preds, losses_dict = self.distiller(image=image, target=target, epoch=epoch)
+
+        # dot backward
+        loss_ce, loss_kd = losses_dict['loss_ce'].mean(), losses_dict['loss_kd'].mean()
+        self.optimizer.zero_grad(set_to_none=True)
+        loss_kd.backward(retain_graph=True)
+        self.optimizer.step_kd()
+        self.optimizer.zero_grad(set_to_none=True)
+        loss_ce.backward()
+        self.optimizer.step()
+
+        train_meters["training_time"].update(time.time() - train_start_time)
+        # collect info
+        batch_size = image.size(0)
+        acc1, acc5 = accuracy(preds, target, topk=(1, 5))
+        train_meters["losses"].update((loss_ce + loss_kd).cpu().detach().numpy().mean(), batch_size)
+        train_meters["top1"].update(acc1[0], batch_size)
+        train_meters["top5"].update(acc5[0], batch_size)
+        # print info
+        msg = "Epoch:{}| Time(data):{:.3f}| Time(train):{:.3f}| Loss:{:.4f}| Top-1:{:.3f}| Top-5:{:.3f}".format(
+            epoch,
+            train_meters["data_time"].avg,
+            train_meters["training_time"].avg,
+            train_meters["losses"].avg,
+            train_meters["top1"].avg,
+            train_meters["top5"].avg,
+        )
+        return msg
+
+
+class CRDDOT(BaseTrainer):
+
+    def init_optimizer(self, cfg):
+        if cfg.SOLVER.TYPE == "SGD":
+            m_task = cfg.SOLVER.MOMENTUM - cfg.SOLVER.DOT.DELTA
+            m_kd = cfg.SOLVER.MOMENTUM + cfg.SOLVER.DOT.DELTA
+            optimizer = DistillationOrientedTrainer(
+                self.distiller.module.get_learnable_parameters(),
+                lr=cfg.SOLVER.LR,
+                momentum=m_task,
+                momentum_kd=m_kd,
+                weight_decay=cfg.SOLVER.WEIGHT_DECAY,
+            )
+        else:
+            raise NotImplementedError(cfg.SOLVER.TYPE)
+        return optimizer
+
+    def train(self, resume=False):
+        epoch = 1
+        if resume:
+            state = load_checkpoint(os.path.join(self.log_path, "latest"))
+            epoch = state["epoch"] + 1
+            self.distiller.load_state_dict(state["model"])
+            self.optimizer.load_state_dict(state["optimizer"])
+            self.best_acc = state["best_acc"]
+        while epoch < self.cfg.SOLVER.EPOCHS + 1:
+            self.train_epoch(epoch)
+            epoch += 1
+        print(log_msg("Best accuracy:{}".format(self.best_acc), "EVAL"))
+        with open(os.path.join(self.log_path, "worklog.txt"), "a") as writer:
+            writer.write("best_acc\t" + "{:.2f}".format(float(self.best_acc)))
+
+    def train_iter(self, data, epoch, train_meters):
+        self.optimizer.zero_grad()
+        train_start_time = time.time()
+        image, target, index, contrastive_index = data
+        train_meters["data_time"].update(time.time() - train_start_time)
+        image = image.float()
+        image = image.cuda(non_blocking=True)
+        target = target.cuda(non_blocking=True)
+        index = index.cuda(non_blocking=True)
+        contrastive_index = contrastive_index.cuda(non_blocking=True)
+
+        # forward
+        preds, losses_dict = self.distiller(
+            image=image, target=target, index=index, contrastive_index=contrastive_index
+        )
+
+        # dot backward
+        loss_ce, loss_kd = losses_dict['loss_ce'].mean(), losses_dict['loss_kd'].mean()
+        self.optimizer.zero_grad(set_to_none=True)
+        loss_kd.backward(retain_graph=True)
+        self.optimizer.step_kd()
+        self.optimizer.zero_grad(set_to_none=True)
+        loss_ce.backward()
+        # self.optimizer.step((1 - epoch / 240.))
+        self.optimizer.step()
+
+        train_meters["training_time"].update(time.time() - train_start_time)
+        # collect info
+        batch_size = image.size(0)
+        acc1, acc5 = accuracy(preds, target, topk=(1, 5))
+        train_meters["losses"].update((loss_ce + loss_kd).cpu().detach().numpy().mean(), batch_size)
         train_meters["top1"].update(acc1[0], batch_size)
         train_meters["top5"].update(acc5[0], batch_size)
         # print info

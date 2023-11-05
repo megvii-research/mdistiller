@@ -16,12 +16,19 @@ from .vgg import vgg19_bn, vgg16_bn, vgg13_bn, vgg11_bn, vgg8_bn
 from .mobilenetv2 import mobile_half
 from .ShuffleNetv1 import ShuffleV1
 from .ShuffleNetv2 import ShuffleV2
+from .mv2_tinyimagenet import mobilenetv2_tinyimagenet
 
 
 cifar100_model_prefix = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), 
     "../../../download_ckpts/cifar_teachers/"
 )
+
+tiny_imagenet_model_prefix = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), 
+    "../../../download_ckpts/tiny_imagenet_teachers/"
+)
+
 cifar_model_dict = {
     # teachers
     "resnet56": (
@@ -62,5 +69,12 @@ cifar_model_dict = {
     "vgg19": (vgg19_bn, None),
     "MobileNetV2": (mobile_half, None),
     "ShuffleV1": (ShuffleV1, None),
+    "ShuffleV2": (ShuffleV2, None),
+}
+
+
+tiny_imagenet_model_dict = {
+    "ResNet18": (ResNet18, tiny_imagenet_model_prefix + "ResNet18_vanilla/ti_res18"),
+    "MobileNetV2": (mobilenetv2_tinyimagenet, None),
     "ShuffleV2": (ShuffleV2, None),
 }
